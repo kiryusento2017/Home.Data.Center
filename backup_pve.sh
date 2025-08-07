@@ -45,7 +45,7 @@ echo "[$(date)] Old backups cleaned up." >> $_LOG_FILE
 
 # MIT License
 #
-# Copyright (c) [2025] [Blacktea]
+# Copyright (c) [2025] [GoGoBlacktea]
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
