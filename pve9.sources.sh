@@ -50,6 +50,8 @@ EOF
 for f in "$SOURCES_D"/ceph.list "$SOURCES_D"/pve-enterprise.list; do
     [[ -f "$f" ]] && cp "$f" "$f.bak-$TS"
 done
+mv "$SOURCES_D"/ceph.list            "$SOURCES_D"/ceph.list.bak-$TS            2>/dev/null || true
+mv "$SOURCES_D"/pve-enterprise.list  "$SOURCES_D"/pve-enterprise.list.bak-$TS  2>/dev/null || true
 
 # -------------- 7. 提示 --------------
 echo "✅ 所有源文件已更新完毕！"
