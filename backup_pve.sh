@@ -42,7 +42,6 @@ done
 
 echo "[$(date)] Old backups cleaned up." >> $_LOG_FILE
 
-
 # MIT License
 #
 # Copyright (c) [2025] [GoGoBlacktea]
