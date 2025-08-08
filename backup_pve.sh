@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义备份存储位置[根据实际情况修改]
-_BACKUP_DIR="/mnt/pve/SystemBackup/PVE-Config"
+_BACKUP_DIR="/home/pve/SystemBackup/PVE-Config"
 # 定义日志文件路径[根据实际情况修改]
 _LOG_FILE="$_BACKUP_DIR/backup_log.txt"
 
