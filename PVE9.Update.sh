@@ -70,7 +70,7 @@ DOMAIN=$(echo "${SOURCES[$choice]}" | cut -d':' -f2)
 TS="$(date +%s)"                           # 秒级时间戳，保证唯一
 SOURCES_LIST="/etc/apt/sources.list"
 SOURCES_D="/etc/apt/sources.list.d"
-BACKUP_DIR1="/etc/apt/sources.list.bak"    # /etc/apt 下的 bak 子目录
+BACKUP_DIR1="/etc/apt/bak"    # /etc/apt 下的 bak 子目录
 BACKUP_DIR2="/etc/apt/sources.list.d/bak"  # /etc/apt/sources.list.d 下的 bak 子目录
 
 # 创建备份目录
