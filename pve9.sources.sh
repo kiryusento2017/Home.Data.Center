@@ -24,25 +24,74 @@ echo -e "
 # ================================================================
 set -euo pipefail
 
+# 定义可选的源地址
+declare -A SOURCES=(
+    ["1"]="阿里云:mirrors.aliyun.com"
+    ["2"]="腾讯云:mirrors.tencent.com"
+    ["3"]="华为云:repo.huaweicloud.com"
+    ["4"]="网易:mirrors.163.com"
+    ["5"]="火山引擎:mirrors.volces.com"
+    ["6"]="清华大学:mirrors.tuna.tsinghua.edu.cn"
+    ["7"]="北京大学:mirrors.pku.edu.cn"
+    ["8"]="浙江大学:mirrors.zju.edu.cn"
+    ["9"]="南京大学:mirrors.nju.edu.cn"
+    ["a"]="兰州大学:mirror.lzu.edu.cn"
+    ["b"]="上海交通大学:mirror.sjtu.edu.cn"
+    ["c"]="重庆邮电大学:mirrors.cqupt.edu.cn"
+    ["d"]="中国科学技术大学:mirrors.ustc.edu.cn"
+    ["e"]="中国科学院软件研究所:mirror.iscas.ac.cn"
+    ["x"]="退出"
+)
+
+# 打印可选的源地址
+echo "请选择源地址："
+# 对键值进行排序后打印
+for key in $(echo "${!SOURCES[@]}" | tr ' ' '\n' | sort); do
+    echo "$key. ${SOURCES[$key]}"
+done
+
+# 读取用户输入
+read -p "请输入编号（1-9 或 a-e，输入 x 退出）： " choice
+
+# 检查用户输入是否有效
+if [[ "$choice" == "x" ]]; then
+    echo "👋 已退出脚本。"
+    exit 0
+elif [[ -z "${SOURCES[$choice]}" ]]; then
+    echo "❌ 无效的编号，请重新运行脚本并输入正确的编号（1-9 或 a-e，输入 x 退出）！"
+    exit 1
+fi
+
+# 提取域名
+DOMAIN=$(echo "${SOURCES[$choice]}" | cut -d':' -f2)
+
+# 定义其他变量
 TS="$(date +%s)"                           # 秒级时间戳，保证唯一
 SOURCES_LIST="/etc/apt/sources.list"
 SOURCES_D="/etc/apt/sources.list.d"
+BACKUP_DIR1="/etc/apt/sources.list.bak"    # /etc/apt 下的 bak 子目录
+BACKUP_DIR2="/etc/apt/sources.list.d/bak"  # /etc/apt/sources.list.d 下的 bak 子目录
+
+# 创建备份目录
+mkdir -p "$BACKUP_DIR1"
+mkdir -p "$BACKUP_DIR2"
 
 # -------------- 1. 备份原 sources.list --------------
-[[ -f "$SOURCES_LIST" ]] && \
-    cp "$SOURCES_LIST" "$SOURCES_LIST.bak-$TS"
+if [[ -f "$SOURCES_LIST" ]]; then
+    cp "$SOURCES_LIST" "$BACKUP_DIR1/sources.list.bak-$TS"
+fi
 
 # -------------- 2. 写入新的 sources.list --------------
-cat > "$SOURCES_LIST" <<'EOF'
+cat > "$SOURCES_LIST" <<EOF
 ## 默认禁用源码镜像以提高速度，如需启用请自行取消注释
-deb http://mirrors.nju.edu.cn/debian trixie main contrib non-free non-free-firmware
-deb http://mirrors.nju.edu.cn/debian trixie-updates main contrib non-free non-free-firmware
-deb http://mirrors.nju.edu.cn/debian trixie-backports main contrib non-free non-free-firmware
-deb http://mirrors.nju.edu.cn/debian-security trixie-security main contrib non-free non-free-firmware
+deb http://$DOMAIN/debian trixie main contrib non-free non-free-firmware
+deb http://$DOMAIN/debian trixie-updates main contrib non-free non-free-firmware
+deb http://$DOMAIN/debian trixie-backports main contrib non-free non-free-firmware
+deb http://$DOMAIN/debian-security trixie-security main contrib non-free non-free-firmware
 EOF
 
 # -------------- 3. 生成 ceph.sources --------------
-cat > "$SOURCES_D/ceph.sources" <<'EOF'
+cat > "$SOURCES_D/ceph.sources" <<EOF
 Types: deb
 URIs: https://enterprise.proxmox.com/debian/ceph-squid
 Suites: trixie
@@ -52,7 +101,7 @@ Enabled: false
 EOF
 
 # -------------- 4. 生成 pve-enterprise.sources --------------
-cat > "$SOURCES_D/pve-enterprise.sources" <<'EOF'
+cat > "$SOURCES_D/pve-enterprise.sources" <<EOF
 Types: deb
 URIs: https://enterprise.proxmox.com/debian/pve
 Suites: trixie
@@ -62,21 +111,20 @@ Enabled: false
 EOF
 
 # -------------- 5. 生成 pve-no-subscription.list --------------
-cat > "$SOURCES_D/pve-no-subscription.list" <<'EOF'
-deb http://mirrors.nju.edu.cn/proxmox/debian/pve trixie pve-no-subscription
+cat > "$SOURCES_D/pve-no-subscription.list" <<EOF
+deb http://$DOMAIN/proxmox/debian/pve trixie pve-no-subscription
 EOF
 
 # -------------- 6. 原地备份旧的 ceph.list / pve-enterprise.list --------------
 for f in "$SOURCES_D"/ceph.list "$SOURCES_D"/pve-enterprise.list; do
-    [[ -f "$f" ]] && cp "$f" "$f.bak-$TS"
+    if [[ -f "$f" ]]; then
+        cp "$f" "$BACKUP_DIR2/$(basename "$f").bak-$TS"
+    fi
 done
-mv "$SOURCES_D"/ceph.list            "$SOURCES_D"/ceph.list.bak-$TS            2>/dev/null || true
-mv "$SOURCES_D"/pve-enterprise.list  "$SOURCES_D"/pve-enterprise.list.bak-$TS  2>/dev/null || true
-
 # -------------- 7. 提示 --------------
 echo "✅ 所有源文件已更新完毕！"
-echo "📦 旧文件已在原目录备份为 *.bak-$TS"
-echo "ℹ️  现在可以执行：sudo apt update"
+echo "📦 旧文件已备份到 $BACKUP_DIR1 和 $BACKUP_DIR2 目录中，文件名为 *.bak-$TS"
+echo "ℹ️  现在可以执行：apt update"
 
 
 # MIT License
