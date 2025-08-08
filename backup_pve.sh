@@ -41,6 +41,8 @@ for ((i=4; i<${#_BACKUP_LIST[@]}; i++)); do
 done
 
 echo "[$(date)] Old backups cleaned up." >> $_LOG_FILE
+echo "✅ PVE配置信息已完成备份！"
+
 
 # MIT License
 #
