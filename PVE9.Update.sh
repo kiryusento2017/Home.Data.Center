@@ -16,7 +16,7 @@ echo -e "
  \____|_|\___)_| |_|  |______/|_|\_||_|\____)_| \_)\___)____)_||_|                          
                                                                                             
 ================================================================
-一键更新 Proxmox 9.0（原地备份版）
+一键更新 Proxmox 9.0（原地备份版） v1.1
 ================================================================
 "     
                                                                                         
@@ -73,9 +73,19 @@ SOURCES_D="/etc/apt/sources.list.d"
 BACKUP_DIR1="/etc/apt/bak"    # /etc/apt 下的 bak 子目录
 BACKUP_DIR2="/etc/apt/sources.list.d/bak"  # /etc/apt/sources.list.d 下的 bak 子目录
 
-# 创建备份目录
-mkdir -p "$BACKUP_DIR1"
-mkdir -p "$BACKUP_DIR2"
+# 创建备份目录，如果不存在则创建
+if [ ! -d "$BACKUP_DIR1" ]; then
+    mkdir -p "$BACKUP_DIR1"
+else
+    echo "目录 $BACKUP_DIR1 已存在，跳过创建。"
+fi
+
+if [ ! -d "$BACKUP_DIR2" ]; then
+    mkdir -p "$BACKUP_DIR2"
+else
+    echo "目录 $BACKUP_DIR2 已存在，跳过创建。"
+fi
+
 
 # -------------- 1. 备份原 sources.list --------------
 if [[ -f "$SOURCES_LIST" ]]; then
