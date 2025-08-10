@@ -16,7 +16,7 @@ echo -e "
  \____|_|\___)_| |_|  |______/|_|\_||_|\____)_| \_)\___)____)_||_|                          
                                                                                             
 ================================================================
-一键更新 Proxmox 9.0（原地备份版） v1.1
+一键更新 Proxmox 9.0（原地备份版） v1.2
 ================================================================
 "     
                                                                                         
@@ -156,10 +156,10 @@ upgrade_choice=${upgrade_choice:-n}  # 如果用户直接按下回车，默认�
 
 if [[ "$upgrade_choice" == "y" || "$upgrade_choice" == "Y" ]]; then
     echo "正在升级系统..."
-    apt upgrade -y
+    apt dist-upgrade -y
     echo "✅ 系统已升级完成！"
 else
-    echo "ℹ️  系统未升级。您可以稍后手动运行 'apt upgrade'。"
+    echo "ℹ️  系统未升级。您可以稍后手动运行 'apt dist-upgrade'。"
 fi
 
 # MIT License
