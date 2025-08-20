@@ -16,7 +16,7 @@ echo -e "
  \____|_|\___)_| |_|  |______/|_|\_||_|\____)_| \_)\___)____)_||_|                          
                                                                                             
 ================================================================
-一键 Proxmox 9.0 Kernel降级 [6.8.12-13] 安装i915驱动 v2.1
+一键 Proxmox 9.0 Kernel降级 [6.8.12-13] 安装i915驱动 v2.2
 ================================================================
 "  
 #!/bin/bash
@@ -85,7 +85,7 @@ proxmox-boot-tool kernel pin 6.8.12-13-pve
 proxmox-boot-tool refresh
 
 # 修改GRUB配置
-sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=".*"/GRUB_CMDLINE_LINUX_DEFAULT="intel_iommu=on i915.enable_guc=3 i915.max_vfs=7 module_blacklist=xe quiet"/' /etc/default/grub
+sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=".*"/GRUB_CMDLINE_LINUX_DEFAULT="intel_iommu=on iommu=pt i915.enable_guc=3 i915.max_vfs=7 module_blacklist=xe quiet"/' /etc/default/grub
 
 # 更新GRUB和initramfs
 update-grub
