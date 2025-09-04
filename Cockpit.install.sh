@@ -29,7 +29,7 @@ echo -e "
  \____|_|\___)_| |_|  |______/|_|\_||_|\____)_| \_)\___)____)_||_|                          
                                                                                             
 ================================================================
-一键 部署Cockpit v1.0 
+一键 部署Cockpit v1.1  ${RED}请以root用户执行脚本${RESET}
 ================================================================
 "
 
@@ -97,52 +97,44 @@ mkdir -p "$WORK_DIR" "$CACHE_DIR"
 cd "$WORK_DIR"
 
 echo " "
-echo -e "==> ${YELLOW}2. 把当前用户加入 sudo 组${RESET}"
-usermod -aG sudo "$(whoami)"
-
-echo " "
-echo -e "==> ${YELLOW}3. 换国内源${RESET}"
+echo -e "==> ${YELLOW}2. 换国内源${RESET}"
 download "$MIRROR_MAIN" main.sh
 bash main.sh
 
 echo " "
-echo -e "==> ${YELLOW}4. 换 Docker 源并安装 Docker${RESET}"
+echo -e "==> ${YELLOW}3. 换 Docker 源并安装 Docker${RESET}"
 download "$MIRROR_DOCKER" docker.sh
 bash docker.sh
 
 echo " "
-echo -e "==> ${YELLOW}5. 下载并执行 docker.speeder.sh${RESET}"
+echo -e "==> ${YELLOW}4. 下载并执行 docker.speeder.sh${RESET}"
 download "$SPEEDER" docker.speeder.sh
 chmod +x docker.speeder.sh
 ./docker.speeder.sh
 
 echo " "
-echo -e "==> ${YELLOW}6. 现在把当前用户加入 docker 组${RESET}"
-sudo usermod -aG docker "$(whoami)"
-
-echo " "
-echo -e "==> ${YELLOW}7. 更新软件列表${RESET}"
+echo -e "==> ${YELLOW}5. 更新软件列表${RESET}"
 apt update
 
 echo " "
-echo -e "==> ${YELLOW}8. 安装 cockpit 主程序（backports）${RESET}"
+echo -e "==> ${YELLOW}6. 安装 cockpit 主程序（backports）${RESET}"
 . /etc/os-release
 apt_install "-t ${VERSION_CODENAME}-backports cockpit"
 
 echo " "
-echo -e "==> ${YELLOW}9. 清空 disallowed-users${RESET}"
+echo -e "==> ${YELLOW}7. 清空 disallowed-users${RESET}"
 mv -f /etc/cockpit/disallowed-users /etc/cockpit/disallowed-users.bak
 touch /etc/cockpit/disallowed-users
 
 echo " "
-echo -e "==> ${YELLOW}10. 安装 cockpit 插件${RESET}"
+echo -e "==> ${YELLOW}8. 安装 cockpit 插件${RESET}"
 for plugin in storaged networkmanager packagekit sosreport machines; do
   apt_install "cockpit-$plugin"
 done
 
 
 echo " "
-echo -e "==> ${YELLOW}11. 下载第三方 cockpit 插件${RESET}"
+echo -e "==> ${YELLOW}9. 下载并安装第三方 cockpit 插件${RESET}"
 download \
   "https://xget.xi-xu.me/gh/chrisjbawden/cockpit-dockermanager/releases/download/latest/dockermanager.deb" \
   "${CACHE_DIR}/dockermanager.deb"
@@ -155,12 +147,10 @@ download \
   "https://xget.xi-xu.me/gh/45Drives/cockpit-file-sharing/releases/download/v4.3.1-2/cockpit-file-sharing_4.3.1-2focal_all.deb" \
   "${CACHE_DIR}/cockpit-file-sharing.deb"
 
-echo " "
-echo -e "==>${YELLOW}12. 安装本地 deb 包${RESET}"
 apt install -y "${CACHE_DIR}"/*.deb
 
 echo " "
-echo -e "==> ${YELLOW}13. 启用 cockpit 并启动${RESET}"
+echo -e "==> ${YELLOW} 启用 cockpit 并启动${RESET}"
 systemctl enable --now cockpit.socket
 
 #############################################
@@ -178,6 +168,32 @@ echo "============================================="
 echo -e "${GREEN}✅ Cockpit 安装完成！浏览器访问 ${ACCESS_URL}${RESET}"
 echo "============================================="
 echo " 🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉"
+
+read -rp "是否为指定账号提权（追加 sudo、docker 组）？[y/N] " CONFIRM
+case "$CONFIRM" in
+    [Yy]) ;;
+    *)
+        echo "已取消提权操作。"
+        exit 0
+        ;;
+esac
+# ---------- 输入账号 ----------
+read -rp "请输入用于登录 Cockpit 系统的账号: " USER_NAME
+
+# ---------- 判断账号是否存在 ----------
+if ! id "$USER_NAME" &>/dev/null; then
+    echo -e "${CYAN}错误：用户 $USER_NAME 不存在！${RESET}"
+    echo -e "可以通过执行 usermod 命令手动赋权。"
+    exit 1
+fi
+echo "升级中，正在为 $USER_NAME 追加所需权限 ……"
+# ---------- 提权 ----------
+sudo /usr/sbin/usermod -aG sudo "$USER_NAME"
+sudo /usr/sbin/usermod -aG docker "$USER_NAME"
+# ---------- 重启 cockpit ----------
+sudo systemctl restart cockpit.socket
+
+echo "$USER_NAME 提权已完成。"
 
 
 # MIT License
