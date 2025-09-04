@@ -29,7 +29,7 @@ echo -e "
  \____|_|\___)_| |_|  |______/|_|\_||_|\____)_| \_)\___)____)_||_|                          
                                                                                             
 ================================================================
-一键 部署Cockpit v1.1  ${RED}请以root用户执行脚本${RESET}
+一键 部署Cockpit v1.2  ${RED}请以root用户执行脚本${RESET}
 ================================================================
 "
 
@@ -186,14 +186,14 @@ if ! id "$USER_NAME" &>/dev/null; then
     echo -e "可以通过执行 usermod 命令手动赋权。"
     exit 1
 fi
-echo "升级中，正在为 $USER_NAME 追加所需权限 ……"
+echo -e "${YELLOW}升级中，正在为 $USER_NAME 追加所需权限 ……${RESET}"
 # ---------- 提权 ----------
 sudo /usr/sbin/usermod -aG sudo "$USER_NAME"
 sudo /usr/sbin/usermod -aG docker "$USER_NAME"
 # ---------- 重启 cockpit ----------
 sudo systemctl restart cockpit.socket
 
-echo "$USER_NAME 提权已完成。"
+echo -e "${BLUE}$USER_NAME 提权已完成。${RESET}"
 
 
 # MIT License
